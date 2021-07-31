@@ -54,8 +54,11 @@ void USelectionManagerComponent::SelectActorsInRect(const FVector2D& FirstPoint,
 	if (!PlayerController || !PlayerController->GetHUD())
 		return;
 
+	UnselectAllIfNeeded();
+
+
 	TArray<AActor*> ActorsInSelection;
-	PlayerController->GetHUD()->GetActorsInSelectionRectangle(m_FilterClass, FirstPoint, SecondPoint, ActorsInSelection);
+	PlayerController->GetHUD()->GetActorsInSelectionRectangle(m_FilterClass, FirstPoint, SecondPoint, ActorsInSelection, m_IncludeNonCollidingComponents, m_ActorMustBeFullyEnclosed);
 	for (auto Actor : ActorsInSelection)
 	{
 		if (auto SelectionComponent = Cast<USelectionComponent>(Actor->GetComponentByClass(USelectionComponent::StaticClass())))
@@ -65,10 +68,15 @@ void USelectionManagerComponent::SelectActorsInRect(const FVector2D& FirstPoint,
 	}
 }
 
-void USelectionManagerComponent::OnMousePress()
+void USelectionManagerComponent::UnselectAllIfNeeded()
 {
 	if (!IsKeyDown(m_AdditiveSelectionKey))
 		UnselectAll();
+}
+
+void USelectionManagerComponent::OnMousePress()
+{
+	UnselectAllIfNeeded();
 
 	if (IsKeyDown(m_ModifierKey))
 		OnRectSelectionStart();
@@ -80,6 +88,15 @@ void USelectionManagerComponent::OnModifierPress()
 {
 	if (IsKeyDown(m_MouseKey))
 		OnRectSelectionStart();
+
+	if(m_BlockControllerRotationWhenModifierIsPressed)
+		SetPlayerControllerIgnoreLookInput(true);
+}
+
+void USelectionManagerComponent::OnModifierRelease()
+{
+	if (m_BlockControllerRotationWhenModifierIsPressed)
+		SetPlayerControllerIgnoreLookInput(false);
 }
 
 void USelectionManagerComponent::OnSingleSelection()
@@ -112,6 +129,7 @@ void USelectionManagerComponent::BeginPlay()
 	{
 		InputComponent->BindKey(m_MouseKey, IE_Pressed, this, &USelectionManagerComponent::OnMousePress);
 		InputComponent->BindKey(m_ModifierKey, IE_Pressed, this, &USelectionManagerComponent::OnModifierPress);
+		InputComponent->BindKey(m_ModifierKey, IE_Released, this, &USelectionManagerComponent::OnModifierRelease);
 	}	
 }
 
@@ -134,5 +152,14 @@ USelectionHUDComponent* USelectionManagerComponent::GetSelectionHUDComponent() c
 		return nullptr;
 
 	return Cast<USelectionHUDComponent>(PlayerController->GetHUD()->GetComponentByClass(USelectionHUDComponent::StaticClass()));
+}
+
+void USelectionManagerComponent::SetPlayerControllerIgnoreLookInput(bool Ignore)
+{
+	auto PlayerController = GetPlayerController();
+	if (!PlayerController)
+		return;
+
+	PlayerController->SetIgnoreLookInput(Ignore);
 }
 
