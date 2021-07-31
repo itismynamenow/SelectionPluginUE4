@@ -7,7 +7,7 @@ C++ plugin for Unreal Engine 4.25 that allows single and rectangle selection
 ## What is included
 
 * C++ code for
-  * USelectionComponent that can be attached to anything derived from APawn to store selection state and display selection cirle
+  * USelectionComponent that can be attached to any actor to store selection state and display selection cirle
   * USelectionManagerComponent that should be attached to AGameMode to keep track of all USelectionComponents
   * USelectionHUDComponent that should be added and wired a bit into AHUD to display selection rectangle
 * Assets
@@ -17,12 +17,11 @@ C++ plugin for Unreal Engine 4.25 that allows single and rectangle selection
 
 * Clone this repository into Plugins folder in your UE4 project
 * Right click your *.uproject file to generate Visual Studio project files
-* Rebuild solution
+* Build solution
 
 ## Use
 
-* Create something that inherits from APawn. For example blueprint BP_Pawn
-* Add to BP_Pawn USelectionComponent
+* Add USelectionComponent to your actor
 * Adjust USelectionComponent properties
   * Set `Plane` as `Static Mesh`
   * Set `MAT_SelectionCirle` as `M Material`
