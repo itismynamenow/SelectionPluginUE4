@@ -12,29 +12,61 @@ USelectionManagerComponent::USelectionManagerComponent()
 
 void USelectionManagerComponent::RegisterComponent(USelectionComponent* Component)
 {
-	m_SelectionComponents.Add(Component);
+	if (!IsValid(Component))
+		return;
+
+	m_Components.Add(Component);
 }
 
 void USelectionManagerComponent::UnregisterComponent(USelectionComponent* Component)
 {
-	m_SelectionComponents.Remove(Component);
+	m_Components.Remove(Component);
 }
 
 TArray<USelectionComponent*> USelectionManagerComponent::GetAllSelectionComponents() const
 {
-	return m_SelectionComponents;
+	return m_Components;
+}
+
+TArray<AActor*> USelectionManagerComponent::GetAllActorsWithSelectionComponents() const
+{
+	TArray<AActor*> Result;
+	for (auto Component : m_Components)
+	{
+		if (!IsValid(Component))
+			continue;
+
+		Result.Add(Component->GetOwner());
+	}
+
+	return Result;
 }
 
 TArray<USelectionComponent*> USelectionManagerComponent::GetSelectedSelectionComponents() const
 {
 	TArray<USelectionComponent*> Result;
-	for (auto Component : m_SelectionComponents)
+	for (auto Component : m_Components)
 	{
 		if (!IsValid(Component))
 			continue;
 
-		if (Component && Component->IsSelected())
+		if (Component->IsSelected())
 			Result.Add(Component);
+	}
+
+	return Result;
+}
+
+TArray<AActor*> USelectionManagerComponent::GetAllSelectedActorsWithSelectionComponents() const
+{
+	TArray<AActor*> Result;
+	for (auto Component : m_Components)
+	{
+		if (!IsValid(Component))
+			continue;
+
+		if (Component->IsSelected())
+			Result.Add(Component->GetOwner());
 	}
 
 	return Result;
@@ -42,7 +74,7 @@ TArray<USelectionComponent*> USelectionManagerComponent::GetSelectedSelectionCom
 
 void USelectionManagerComponent::UnselectAll()
 {
-	for (auto Component : m_SelectionComponents)
+	for (auto Component : m_Components)
 	{
 		if(!IsValid(Component))
 			continue;
@@ -124,22 +156,44 @@ void USelectionManagerComponent::OnModifierRelease()
 
 void USelectionManagerComponent::OnSingleSelection()
 {
+	auto World = GetWorld();
+	if (!IsValid(World))
+		return;
+
 	auto PlayerController = GetPlayerController();
 	if (!IsValid(PlayerController))
 		return;
 
+	FVector MousePosition;
+	FVector MouseDirection;
+
+	PlayerController->DeprojectMousePositionToWorld(MousePosition, MouseDirection);
+
+	const auto TraceStart = MousePosition;
+	const auto TraceEnd = MousePosition + MouseDirection * m_LineTraceDistance;
+
 	FHitResult HitResult;
-	if (PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult))
+	if (World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, m_CollisionChannel))
 	{
 		if (auto HitActor = HitResult.Actor.Get())
 		{
 			if (!IsValid(HitActor))
+			{
+				if(m_LogHitResult)
+					UE_LOG(LogTemp, Log, TEXT("Hit result: Hit not valid actor"));
 				return;
+			}
 
 			auto SelectionComponent = Cast<USelectionComponent>(HitActor->GetComponentByClass(USelectionComponent::StaticClass()));
 			if (!IsValid(SelectionComponent))
+			{
+				if(m_LogHitResult)
+					UE_LOG(LogTemp, Log, TEXT("Hit result: Hit object '%s' without selection component"), *HitActor->GetName());
 				return;
+			}
 
+			if (m_LogHitResult)
+				UE_LOG(LogTemp, Log, TEXT("Hit result: Hit object '%s' with selection component"), *HitActor->GetName());
 			SelectionComponent->ToggleSelected();
 		}
 	}

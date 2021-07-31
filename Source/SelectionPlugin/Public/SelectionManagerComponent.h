@@ -21,13 +21,23 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<USelectionComponent*> GetAllSelectionComponents() const;
 	UFUNCTION(BlueprintCallable)
+	TArray<AActor*> GetAllActorsWithSelectionComponents() const;
+	UFUNCTION(BlueprintCallable)
 	TArray<USelectionComponent*> GetSelectedSelectionComponents() const;
+	UFUNCTION(BlueprintCallable)
+	TArray<AActor*> GetAllSelectedActorsWithSelectionComponents() const;
 	UFUNCTION(BlueprintCallable)
 	void UnselectAll();
 	UFUNCTION(BlueprintCallable)
 	bool IsRectSelectionActive() const;
 	UFUNCTION(BlueprintCallable)
 	void SelectActorsInRect(const FVector2D& FirstPoint, const FVector2D& SecondPoint);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float m_LineTraceDistance = 5000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<ECollisionChannel> m_CollisionChannel = ECollisionChannel::ECC_Visibility;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Logging")
+	bool m_LogHitResult = false;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -63,6 +73,6 @@ private:
 	void OnRectSelectionStart();
 
 private:
-	TArray<USelectionComponent*> m_SelectionComponents;
+	TArray<USelectionComponent*> m_Components;
 
 };
