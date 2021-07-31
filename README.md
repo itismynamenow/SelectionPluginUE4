@@ -1,5 +1,7 @@
 # SelectionPluginUE4
 
+![](Resources/SelectionDemo.gif)
+
 ## What is included
 
 * C++ code for
