@@ -2,7 +2,7 @@
 
 ![](Resources/SelectionDemo.gif)
 
-C++ plugin for Unreal Engine 4 that allows single and rectangle selection
+C++ plugin for Unreal Engine 4.25 that allows single and rectangle selection
 
 ## What is included
 
