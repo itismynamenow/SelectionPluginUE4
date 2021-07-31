@@ -30,7 +30,10 @@ TArray<USelectionComponent*> USelectionManagerComponent::GetSelectedSelectionCom
 	TArray<USelectionComponent*> Result;
 	for (auto Component : m_SelectionComponents)
 	{
-		if (Component->IsSelected())
+		if (!IsValid(Component))
+			continue;
+
+		if (Component && Component->IsSelected())
 			Result.Add(Component);
 	}
 
@@ -40,7 +43,12 @@ TArray<USelectionComponent*> USelectionManagerComponent::GetSelectedSelectionCom
 void USelectionManagerComponent::UnselectAll()
 {
 	for (auto Component : m_SelectionComponents)
+	{
+		if(!IsValid(Component))
+			continue;
+
 		Component->SetSelected(false);
+	}
 }
 
 bool USelectionManagerComponent::IsRectSelectionActive() const
@@ -51,20 +59,35 @@ bool USelectionManagerComponent::IsRectSelectionActive() const
 void USelectionManagerComponent::SelectActorsInRect(const FVector2D& FirstPoint, const FVector2D& SecondPoint)
 {
 	auto PlayerController = GetPlayerController();
-	if (!PlayerController || !PlayerController->GetHUD())
+	if (!IsValid(PlayerController))
+		return;
+
+	auto HUD = PlayerController->GetHUD();
+	if (!IsValid(HUD))
 		return;
 
 	UnselectAllIfNeeded();
 
-
 	TArray<AActor*> ActorsInSelection;
-	PlayerController->GetHUD()->GetActorsInSelectionRectangle(m_FilterClass, FirstPoint, SecondPoint, ActorsInSelection, m_IncludeNonCollidingComponents, m_ActorMustBeFullyEnclosed);
+	HUD->GetActorsInSelectionRectangle(
+		m_FilterClass, 
+		FirstPoint, 
+		SecondPoint, 
+		ActorsInSelection, 
+		m_IncludeNonCollidingComponents, 
+		m_ActorMustBeFullyEnclosed
+	);
+
 	for (auto Actor : ActorsInSelection)
 	{
-		if (auto SelectionComponent = Cast<USelectionComponent>(Actor->GetComponentByClass(USelectionComponent::StaticClass())))
-		{
-			SelectionComponent->SetSelected(true);
-		}
+		if(!IsValid(Actor))
+			continue;
+
+		auto SelectionComponent = Cast<USelectionComponent>(Actor->GetComponentByClass(USelectionComponent::StaticClass()));
+		if (!IsValid(SelectionComponent))
+			continue;
+
+		SelectionComponent->SetSelected(true);
 	}
 }
 
@@ -101,65 +124,90 @@ void USelectionManagerComponent::OnModifierRelease()
 
 void USelectionManagerComponent::OnSingleSelection()
 {
-	if (!GetPlayerController())
+	auto PlayerController = GetPlayerController();
+	if (!IsValid(PlayerController))
 		return;
+
 	FHitResult HitResult;
-	if (GetPlayerController()->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult))
+	if (PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult))
 	{
 		if (auto HitActor = HitResult.Actor.Get())
 		{
-			if (auto SelectionComponent = Cast<USelectionComponent>(HitActor->GetComponentByClass(USelectionComponent::StaticClass())))
-				SelectionComponent->ToggleSelected();
+			if (!IsValid(HitActor))
+				return;
+
+			auto SelectionComponent = Cast<USelectionComponent>(HitActor->GetComponentByClass(USelectionComponent::StaticClass()));
+			if (!IsValid(SelectionComponent))
+				return;
+
+			SelectionComponent->ToggleSelected();
 		}
 	}
-
 }
 
 void USelectionManagerComponent::OnRectSelectionStart()
 {
-	if (auto SelectionHUDComponent = GetSelectionHUDComponent())
-		SelectionHUDComponent->UpdateStartPoint();
+	auto SelectionHUDComponent = GetSelectionHUDComponent();
+	if (!IsValid(SelectionHUDComponent))
+		UE_LOG(LogTemp, Error, TEXT("SelectionHUDComponent is not valid"));
+
+	SelectionHUDComponent->UpdateStartPoint();
 }
 
 void USelectionManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	auto InputComponent = GetPlayerController()->InputComponent;
-	if (InputComponent)
-	{
-		InputComponent->BindKey(m_MouseKey, IE_Pressed, this, &USelectionManagerComponent::OnMousePress);
-		InputComponent->BindKey(m_ModifierKey, IE_Pressed, this, &USelectionManagerComponent::OnModifierPress);
-		InputComponent->BindKey(m_ModifierKey, IE_Released, this, &USelectionManagerComponent::OnModifierRelease);
-	}	
+
+	auto PlayerController = GetPlayerController();
+	if (!IsValid(PlayerController))
+		return;
+
+	auto InputComponent = PlayerController->InputComponent;
+	if (!IsValid(InputComponent))
+		return;
+
+	InputComponent->BindKey(m_MouseKey, IE_Pressed, this, &USelectionManagerComponent::OnMousePress);
+	InputComponent->BindKey(m_ModifierKey, IE_Pressed, this, &USelectionManagerComponent::OnModifierPress);
+	InputComponent->BindKey(m_ModifierKey, IE_Released, this, &USelectionManagerComponent::OnModifierRelease);
 }
 
 bool USelectionManagerComponent::IsKeyDown(const FKey& Key) const
 {
-	if (auto PlayerController = GetPlayerController())
-		return PlayerController->IsInputKeyDown(Key);
-	return false;
+	auto PlayerController = GetPlayerController();
+	if (!IsValid(PlayerController))
+		return false;
+
+	return PlayerController->IsInputKeyDown(Key);
 }
 
 APlayerController* USelectionManagerComponent::GetPlayerController() const
 {
-	return GetWorld()->GetFirstPlayerController();
+	auto World = GetWorld();
+	if (!IsValid(World))
+		return nullptr;
+
+	return World->GetFirstPlayerController();
 }
 
 USelectionHUDComponent* USelectionManagerComponent::GetSelectionHUDComponent() const
 {
 	auto PlayerController = GetPlayerController();
-	if(!PlayerController || !PlayerController->GetHUD())
+	if (!IsValid(PlayerController))
 		return nullptr;
 
-	return Cast<USelectionHUDComponent>(PlayerController->GetHUD()->GetComponentByClass(USelectionHUDComponent::StaticClass()));
+	auto HUD = PlayerController->GetHUD();
+	if (!IsValid(HUD))
+		return nullptr;
+
+	return Cast<USelectionHUDComponent>(HUD->GetComponentByClass(USelectionHUDComponent::StaticClass()));
 }
 
 void USelectionManagerComponent::SetPlayerControllerIgnoreLookInput(bool Ignore)
 {
 	auto PlayerController = GetPlayerController();
-	if (!PlayerController)
+	if (!IsValid(PlayerController))
 		return;
 
-	PlayerController->SetIgnoreLookInput(Ignore);
+	PlayerController->SetIgnoreLookInput(Ignore);	
 }
 

@@ -24,16 +24,19 @@ void USelectionHUDComponent::ReceiveDrawHUD()
 
 void USelectionHUDComponent::SelectActorsInRect()
 {
-	if (auto SelectionManagerComponent = GetSelectionManagerComponent())
+	auto SelectionManagerComponent = GetSelectionManagerComponent();
+	if (IsValid(SelectionManagerComponent))
 		SelectionManagerComponent->SelectActorsInRect(m_StartPoint, m_EndPoint);
+	else
+		UE_LOG(LogTemp, Error, TEXT("SelectionManagerComponent is not valid"));
 }
 
 void USelectionHUDComponent::DrawSelectionRect()
 {
 	auto HUD = Cast<AHUD>(GetOwner());
-	if (!HUD)
+	if (!IsValid(HUD))
 	{
-		UE_LOG(LogTemp, Error, TEXT("HUD is null"));
+		UE_LOG(LogTemp, Error, TEXT("HUD is not valid"));
 		return;
 	}
 
@@ -65,9 +68,14 @@ void USelectionHUDComponent::BeginPlay()
 
 bool USelectionHUDComponent::IsSelectionActive() const
 {
-	if(auto SelectionManagerComponent = GetSelectionManagerComponent())
-		return SelectionManagerComponent->IsRectSelectionActive();
-	return false;
+	auto SelectionManagerComponent = GetSelectionManagerComponent();
+	if (!IsValid(SelectionManagerComponent))
+	{
+		UE_LOG(LogTemp, Error, TEXT("SelectionManagerComponent is not valid"));
+		return false;
+	}
+
+	return SelectionManagerComponent->IsRectSelectionActive();
 }
 
 void USelectionHUDComponent::UpdateStartPoint()
@@ -77,20 +85,30 @@ void USelectionHUDComponent::UpdateStartPoint()
 
 FVector2D USelectionHUDComponent::GetCursorPosition() const
 {
+	auto PlayerController = GetPlayerController();
+	if (!IsValid(PlayerController))
+		return FVector2D();
+
 	FVector2D Position;
-	PlayerController()->GetMousePosition(Position.X, Position.Y);
+	PlayerController->GetMousePosition(Position.X, Position.Y);
 	return Position;
 }
 
-class APlayerController* USelectionHUDComponent::PlayerController() const
+class APlayerController* USelectionHUDComponent::GetPlayerController() const
 {
-	return GetWorld()->GetFirstPlayerController();
+	auto World = GetWorld();
+	if(!IsValid(World))
+		return nullptr;
+
+	return World->GetFirstPlayerController();
 }
 
 USelectionManagerComponent* USelectionHUDComponent::GetSelectionManagerComponent() const
 {
-	if (auto GameMode = UGameplayStatics::GetGameMode(GetWorld()))
-		return  Cast<USelectionManagerComponent>(GameMode->GetComponentByClass(USelectionManagerComponent::StaticClass()));
-	return nullptr;
+	auto GameMode = UGameplayStatics::GetGameMode(GetWorld());
+	if (!IsValid(GameMode))
+		return nullptr;
+
+	return Cast<USelectionManagerComponent>(GameMode->GetComponentByClass(USelectionManagerComponent::StaticClass()));
 }
 

@@ -25,26 +25,26 @@ void USelectionComponent::BeginPlay()
 
 void USelectionComponent::RegisterWithSelectionManager()
 {
-	auto pGameMode = UGameplayStatics::GetGameMode(GetWorld());
+	auto GameMode = UGameplayStatics::GetGameMode(GetWorld());
+	if (!IsValid(GameMode))
+		return;
+
+	auto SelectionManager = Cast<USelectionManagerComponent>(GameMode->GetComponentByClass(USelectionManagerComponent::StaticClass()));
+	if (!IsValid(SelectionManager))
 	{
-
-		auto SelectionManager = Cast<USelectionManagerComponent>(pGameMode->GetComponentByClass(USelectionManagerComponent::StaticClass()));
-		if (!SelectionManager)
-		{
-			UE_LOG(LogTemp, Error, TEXT("SelectionManagerComponent is null"));
-			return;
-		}
-
-		SelectionManager->RegisterSelectionComponent(this);
+		UE_LOG(LogTemp, Error, TEXT("SelectionManagerComponent is not valid"));
+		return;
 	}
+
+	SelectionManager->RegisterSelectionComponent(this);
 }
 
 void USelectionComponent::SetColor(const FColor& Color)
 {
 	CreateMaterialInstanceIfNeeded();
-	if(!m_MaterialInstance)
+	if(!IsValid(m_MaterialInstance))
 	{
-		UE_LOG(LogTemp, Error, TEXT("MaterialInstance is null"));
+		UE_LOG(LogTemp, Error, TEXT("m_MaterialInstance is not valid"));
 		return;
 	}
 
@@ -55,8 +55,11 @@ void USelectionComponent::CreateMaterialInstanceIfNeeded()
 {
 	if (!m_MaterialInstance || m_MaterialInstance != GetMaterial(0))
 	{
-		if (!m_Material)
+		if (!IsValid(m_Material))
+		{
+			UE_LOG(LogTemp, Error, TEXT("m_Material is not valid"));
 			return;
+		}
 
 		m_MaterialInstance = UMaterialInstanceDynamic::Create(m_Material, this);
 		SetMaterial(0, m_MaterialInstance);

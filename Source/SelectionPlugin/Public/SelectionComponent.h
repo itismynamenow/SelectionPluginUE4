@@ -36,12 +36,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+private:
 	void RegisterWithSelectionManager();
-
 	void SetColor(const FColor& Color);
-
 	void CreateMaterialInstanceIfNeeded();
-
 	void UpdateColor();
 
 private:

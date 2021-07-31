@@ -33,7 +33,7 @@ protected:
 private:
 	bool IsSelectionActive() const;
 	FVector2D GetCursorPosition() const;
-	APlayerController* PlayerController() const;
+	APlayerController* GetPlayerController() const;
 	USelectionManagerComponent* GetSelectionManagerComponent() const;
 
 private:
