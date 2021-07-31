@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FSelectionPluginModule : public IModuleInterface
+class SELECTIONPLUGIN_API FSelectionPluginModule : public IModuleInterface
 {
 public:
 

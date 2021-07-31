@@ -6,7 +6,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class USelectionComponent : public UStaticMeshComponent
+class SELECTIONPLUGIN_API USelectionComponent : public UStaticMeshComponent
 {
 	GENERATED_BODY()
 

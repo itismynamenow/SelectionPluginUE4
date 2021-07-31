@@ -7,7 +7,7 @@
 class USelectionManagerComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class USelectionHUDComponent : public UActorComponent
+class SELECTIONPLUGIN_API USelectionHUDComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
