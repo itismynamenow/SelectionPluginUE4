@@ -15,9 +15,9 @@ public:
 	USelectionManagerComponent();
 
 	UFUNCTION(BlueprintCallable)
-	void RegisterSelectionComponent(USelectionComponent* Component);
+	void RegisterComponent(USelectionComponent* Component);
 	UFUNCTION(BlueprintCallable)
-	void UnregisterSelectionComponent(USelectionComponent* Component);
+	void UnregisterComponent(USelectionComponent* Component);
 	UFUNCTION(BlueprintCallable)
 	TArray<USelectionComponent*> GetAllSelectionComponents() const;
 	UFUNCTION(BlueprintCallable)

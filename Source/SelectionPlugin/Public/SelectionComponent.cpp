@@ -36,7 +36,7 @@ void USelectionComponent::RegisterWithSelectionManager()
 		return;
 	}
 
-	SelectionManager->RegisterSelectionComponent(this);
+	SelectionManager->RegisterComponent(this);
 }
 
 void USelectionComponent::SetColor(const FColor& Color)
@@ -97,6 +97,19 @@ void USelectionComponent::OnRegister()
 {
 	Super::OnRegister();
 	UpdateColor();
+}
+
+void USelectionComponent::BeginDestroy()
+{
+	auto GameMode = UGameplayStatics::GetGameMode(GetWorld());
+	if (IsValid(GameMode))
+	{
+		auto SelectionManager = Cast<USelectionManagerComponent>(GameMode->GetComponentByClass(USelectionManagerComponent::StaticClass()));
+		if (IsValid(SelectionManager))
+			SelectionManager->UnregisterComponent(this);
+	}
+
+	Super::BeginDestroy();
 }
 
 void USelectionComponent::OnComponentCreated()

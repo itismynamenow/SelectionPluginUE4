@@ -19,9 +19,10 @@ public:
 	UFUNCTION(BlueprintCallable, CallInEditor)
 	void ToggleSelected();
 
-	void InitializeComponent() override;
 	void OnRegister() override;
+	void BeginDestroy() override;
 	void OnComponentCreated() override;
+	void InitializeComponent() override;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

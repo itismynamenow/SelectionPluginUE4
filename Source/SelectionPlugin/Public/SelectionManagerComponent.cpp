@@ -10,12 +10,12 @@ USelectionManagerComponent::USelectionManagerComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void USelectionManagerComponent::RegisterSelectionComponent(USelectionComponent* Component)
+void USelectionManagerComponent::RegisterComponent(USelectionComponent* Component)
 {
 	m_SelectionComponents.Add(Component);
 }
 
-void USelectionManagerComponent::UnregisterSelectionComponent(USelectionComponent* Component)
+void USelectionManagerComponent::UnregisterComponent(USelectionComponent* Component)
 {
 	m_SelectionComponents.Remove(Component);
 }
