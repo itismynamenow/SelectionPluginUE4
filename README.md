@@ -41,3 +41,6 @@ C++ plugin for Unreal Engine 4.25 that allows single and rectangle selection
 * Fact that by default selection rectangle apprears only when `USelectionManagerComponent::m_MouseKey` (Left Mouse Button) and `USelectionManagerComponent::m_ModifierKey` (Alt) are pressed
 * Fact that by default to add more actors to selection or to exclude actor from selection `USelectionManagerComponent::m_AdditiveSelectionKey` (Left Shift) should be pressed
 
+## Plugins that depend on this plugin
+
+* [ControlGroupsPluginUE4](https://github.com/itismynamenow/ControlGroupsPluginUE4)
